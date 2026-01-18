@@ -1,0 +1,66 @@
+name: Update PKGBUILD
+
+on:
+  repository_dispatch:
+    types: [new-release]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to update to (e.g., 2.9.0)'
+        required: true
+
+jobs:
+  update-pkgbuild:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Get release info
+        id: release
+        run: |
+          VERSION="${{ github.event.inputs.version || github.event.client_payload.version }}"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          
+          # Download tarball and compute checksum
+          wget "https://github.com/jolars/tomat/archive/v$VERSION.tar.gz"
+          SHA256=$(sha256sum "v$VERSION.tar.gz" | cut -d' ' -f1)
+          echo "sha256=$SHA256" >> $GITHUB_OUTPUT
+          
+          echo "Downloaded v$VERSION.tar.gz"
+          echo "SHA256: $SHA256"
+
+      - name: Update PKGBUILD
+        run: |
+          sed -i "s/^pkgver=.*/pkgver=${{ steps.release.outputs.version }}/" PKGBUILD
+          sed -i "s/^pkgrel=.*/pkgrel=1/" PKGBUILD
+          sed -i "s/^sha256sums=.*/sha256sums=('${{ steps.release.outputs.sha256 }}')/" PKGBUILD
+
+      - name: Generate .SRCINFO
+        uses: edlanglois/pkgbuild-action@v1
+        with:
+          pkgbuildPath: ./PKGBUILD
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "chore: update to v${{ steps.release.outputs.version }}"
+          title: "Update to v${{ steps.release.outputs.version }}"
+          body: |
+            Updates PKGBUILD for tomat v${{ steps.release.outputs.version }}
+            
+            **Release**: https://github.com/jolars/tomat/releases/tag/v${{ steps.release.outputs.version }}
+            
+            **Changes:**
+            - pkgver: ${{ steps.release.outputs.version }}
+            - pkgrel: 1
+            - sha256sum: `${{ steps.release.outputs.sha256 }}`
+            
+            ---
+            
+            **Testing checklist before merging:**
+            - [ ] Review PKGBUILD changes
+            - [ ] Test locally: `makepkg -si`
+            - [ ] Verify build succeeds
+            - [ ] Push to AUR after merge
+          branch: "update-v${{ steps.release.outputs.version }}"
+          delete-branch: true

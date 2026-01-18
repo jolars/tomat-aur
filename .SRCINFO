@@ -1,0 +1,15 @@
+pkgbase = tomat
+	pkgdesc = A Pomodoro timer with daemon support for waybar and other status bars
+	pkgver = 2.8.0
+	pkgrel = 1
+	url = https://github.com/jolars/tomat
+	arch = x86_64
+	arch = aarch64
+	license = MIT
+	makedepends = rust
+	makedepends = cargo
+	depends = alsa-lib
+	source = tomat-2.8.0.tar.gz::https://github.com/jolars/tomat/archive/v2.8.0.tar.gz
+	sha256sums = 2a3fb507ccb06655aa6c0ceecf8c384055c17c0b887026ca33a3110647e344ce
+
+pkgname = tomat

@@ -8,10 +8,10 @@ on:
       version:
         description: "Version to update to (e.g., 2.9.0)"
         required: true
-      pkgrel:
-        description: "Package release number (default: 1)"
-        required: false
-        default: "1"
+
+permissions:
+  contents: write
+  pull-requests: write
 
 jobs:
   update-pkgbuild:
@@ -25,9 +25,7 @@ jobs:
         id: release
         run: |
           VERSION="${{ github.event.inputs.version || github.event.client_payload.version }}"
-          PKGREL="${{ github.event.inputs.pkgrel || github.event.client_payload.pkgrel || '1' }}"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "pkgrel=$PKGREL" >> $GITHUB_OUTPUT
 
           # Download binary tarballs and compute checksums
           wget "https://github.com/jolars/tomat/releases/download/v$VERSION/tomat-x86_64-unknown-linux-gnu.tar.gz"
@@ -43,10 +41,34 @@ jobs:
           echo "SHA256 x86_64: $SHA256_X64"
           echo "SHA256 aarch64: $SHA256_ARM64"
 
+      - name: Determine pkgrel
+        id: pkgrel
+        run: |
+          # Clone AUR repo to check current version
+          git clone https://aur.archlinux.org/tomat-bin.git aur-temp || true
+
+          PKGREL=1
+          if [ -f aur-temp/PKGBUILD ]; then
+            AUR_PKGVER=$(grep '^pkgver=' aur-temp/PKGBUILD | cut -d= -f2)
+            AUR_PKGREL=$(grep '^pkgrel=' aur-temp/PKGBUILD | cut -d= -f2)
+            NEW_PKGVER="${{ steps.release.outputs.version }}"
+
+            if [ "$NEW_PKGVER" = "$AUR_PKGVER" ]; then
+              # Same version, increment pkgrel
+              PKGREL=$((AUR_PKGREL + 1))
+              echo "Same version detected, incrementing pkgrel to $PKGREL"
+            else
+              echo "New version detected, using pkgrel=1"
+            fi
+          fi
+
+          echo "pkgrel=$PKGREL" >> $GITHUB_OUTPUT
+          rm -rf aur-temp
+
       - name: Update PKGBUILD
         run: |
           sed -i "s/^pkgver=.*/pkgver=${{ steps.release.outputs.version }}/" PKGBUILD
-          sed -i "s/^pkgrel=.*/pkgrel=${{ steps.release.outputs.pkgrel }}/" PKGBUILD
+          sed -i "s/^pkgrel=.*/pkgrel=${{ steps.pkgrel.outputs.pkgrel }}/" PKGBUILD
           sed -i "s/^sha256sums_x86_64=.*/sha256sums_x86_64=('${{ steps.release.outputs.sha256_x64 }}')/" PKGBUILD
           sed -i "s/^sha256sums_aarch64=.*/sha256sums_aarch64=('${{ steps.release.outputs.sha256_arm64 }}')/" PKGBUILD
 
@@ -90,7 +112,7 @@ jobs:
 
             **Changes:**
             - pkgver: ${{ steps.release.outputs.version }}
-            - pkgrel: ${{ steps.release.outputs.pkgrel }}
+            - pkgrel: ${{ steps.pkgrel.outputs.pkgrel }}
             - sha256sum (x86_64): `${{ steps.release.outputs.sha256_x64 }}`
             - sha256sum (aarch64): `${{ steps.release.outputs.sha256_arm64 }}`
 

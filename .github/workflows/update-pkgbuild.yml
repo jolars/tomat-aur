@@ -54,11 +54,6 @@ jobs:
           sed -i "s/^sha256sums_x86_64=.*/sha256sums_x86_64=('${{ steps.release.outputs.sha256_x64 }}')/" PKGBUILD
           sed -i "s/^sha256sums_aarch64=.*/sha256sums_aarch64=('${{ steps.release.outputs.sha256_arm64 }}')/" PKGBUILD
 
-      - name: Validate PKGBUILD
-        uses: edlanglois/pkgbuild-action@v1
-        with:
-          pkgbuildPath: ./PKGBUILD
-
       - name: Test build package
         run: |
           # Extract tarballs for testing
@@ -74,6 +69,17 @@ jobs:
           test -f systemd.service || (echo "systemd.service not found" && exit 1)
 
           echo "✓ All expected files present in tarball"
+
+      - name: Install makepkg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pacman-package-manager
+
+      - name: Generate .SRCINFO
+        run: makepkg --printsrcinfo > .SRCINFO
+
+      - name: Validate and build package
+        uses: edlanglois/pkgbuild-action@v1
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v6

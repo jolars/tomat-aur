@@ -12,12 +12,6 @@ on:
         description: "Package release number (default: 1)"
         required: false
         default: "1"
-  push:
-    branches:
-      - main
-    paths:
-      - "PKGBUILD"
-      - ".SRCINFO"
 
 jobs:
   update-pkgbuild:
@@ -102,47 +96,6 @@ jobs:
             **Testing checklist before merging:**
             - [ ] Review PKGBUILD changes
             - [ ] Verify checksums match GitHub release
-            - [ ] Push to AUR after merge
+            - [ ] Will auto-push to AUR after merge
           branch: "update-v${{ steps.release.outputs.version }}"
           delete-branch: true
-
-  push-to-aur:
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push'
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-
-      - name: Setup SSH for AUR
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.AUR_SSH_KEY }}" > ~/.ssh/aur
-          chmod 600 ~/.ssh/aur
-          ssh-keyscan -t ed25519 aur.archlinux.org >> ~/.ssh/known_hosts
-
-          cat > ~/.ssh/config <<EOF
-          Host aur.archlinux.org
-            IdentityFile ~/.ssh/aur
-            User aur
-          EOF
-
-      - name: Configure Git
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-
-      - name: Push to AUR
-        run: |
-          git clone ssh://aur@aur.archlinux.org/tomat-bin.git aur-repo
-          cp PKGBUILD .SRCINFO aur-repo/
-          cd aur-repo
-          git add PKGBUILD .SRCINFO
-
-          if git diff --staged --quiet; then
-            echo "No changes to push"
-          else
-            git commit -m "Update to $(grep '^pkgver=' PKGBUILD | cut -d= -f2)"
-            git push
-            echo "Successfully pushed to AUR"
-          fi

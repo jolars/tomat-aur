@@ -6,8 +6,8 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Version to update to (e.g., 2.9.0)"
-        required: true
+        description: "Version to update to (leave empty for latest)"
+        required: false
 
 permissions:
   contents: write
@@ -24,7 +24,17 @@ jobs:
       - name: Get release info
         id: release
         run: |
-          VERSION="${{ github.event.inputs.version || github.event.client_payload.version }}"
+          # Get version from input, client_payload, or fetch latest from GitHub
+          if [ -n "${{ github.event.inputs.version }}" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          elif [ -n "${{ github.event.client_payload.version }}" ]; then
+            VERSION="${{ github.event.client_payload.version }}"
+          else
+            # Fetch latest release from GitHub API
+            VERSION=$(curl -s https://api.github.com/repos/jolars/tomat/releases/latest | grep '"tag_name"' | cut -d'"' -f4 | sed 's/^v//')
+            echo "Fetched latest version: $VERSION"
+          fi
+
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
           # Download binary tarballs and compute checksums

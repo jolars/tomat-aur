@@ -1,37 +1,33 @@
-# Maintainer: Johan Larsson <johan@jolars.co>
-pkgname=tomat
+pkgname=tomat-bin
 pkgver=2.8.0
-pkgrel=1
-pkgdesc="A Pomodoro timer with daemon support for waybar and other status bars"
+pkgrel=4
+pkgdesc="A Pomodoro timer for status bars"
 arch=('x86_64' 'aarch64')
 url="https://github.com/jolars/tomat"
 license=('MIT')
-depends=('alsa-lib')
-makedepends=('rust' 'cargo')
-source=("$pkgname-$pkgver.tar.gz::$url/archive/v$pkgver.tar.gz")
-sha256sums=('2a3fb507ccb06655aa6c0ceecf8c384055c17c0b887026ca33a3110647e344ce')
-
-prepare() {
-    cd "$pkgname-$pkgver"
-    cargo fetch --locked --target "$(rustc -vV | sed -n 's/host: //p')"
-}
-
-build() {
-    cd "$pkgname-$pkgver"
-    export RUSTUP_TOOLCHAIN=stable
-    export CARGO_TARGET_DIR=target
-    cargo build --frozen --release --all-features
-}
-
-check() {
-    cd "$pkgname-$pkgver"
-    export RUSTUP_TOOLCHAIN=stable
-    cargo test --frozen --all-features
-}
+depends=('alsa-lib' 'gcc-libs')
+provides=('tomat')
+conflicts=('tomat')
+source_x86_64=("$url/releases/download/v$pkgver/tomat-x86_64-unknown-linux-gnu.tar.gz")
+source_aarch64=("$url/releases/download/v$pkgver/tomat-aarch64-unknown-linux-gnu.tar.gz")
+sha256sums_x86_64=('badd7be1aca3a038ed52f4ff5b6748787c4f98ba15c59861f95bf5db444e4225')
+sha256sums_aarch64=('bdba66d9f74e84eda9a529d53845629c08b312fe59cd7b40b9d6238dc79937cc')
 
 package() {
-    cd "$pkgname-$pkgver"
-    install -Dm755 "target/release/$pkgname" "$pkgdir/usr/bin/$pkgname"
+    # Binary
+    install -Dm755 tomat "$pkgdir/usr/bin/tomat"
+
+    # Man pages
+    install -Dm644 man/*.1 -t "$pkgdir/usr/share/man/man1/"
+
+    # Shell completions
+    install -Dm644 completions/tomat.bash "$pkgdir/usr/share/bash-completion/completions/tomat"
+    install -Dm644 completions/tomat.fish "$pkgdir/usr/share/fish/vendor_completions.d/tomat.fish"
+    install -Dm644 completions/_tomat "$pkgdir/usr/share/zsh/site-functions/_tomat"
+
+    # Systemd user service
+    install -Dm644 tomat.service "$pkgdir/usr/lib/systemd/user/tomat.service"
+
+    # License
     install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
-    install -Dm644 README.md "$pkgdir/usr/share/doc/$pkgname/README.md"
 }

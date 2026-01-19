@@ -113,6 +113,9 @@ jobs:
         uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ secrets.RELEASE_TOKEN }}
+          add-paths: |
+            PKGBUILD
+            .SRCINFO
           commit-message: "chore: update to v${{ steps.release.outputs.version }}"
           title: "Update to v${{ steps.release.outputs.version }}"
           body: |

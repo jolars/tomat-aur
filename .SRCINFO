@@ -1,6 +1,6 @@
 pkgbase = tomat-bin
 	pkgdesc = A Pomodoro timer for status bars
-	pkgver = 2.9.0
+	pkgver = 2.10.0
 	pkgrel = 1
 	url = https://github.com/jolars/tomat
 	arch = x86_64
@@ -10,9 +10,9 @@ pkgbase = tomat-bin
 	depends = gcc-libs
 	provides = tomat
 	conflicts = tomat
-	source_x86_64 = https://github.com/jolars/tomat/releases/download/v2.9.0/tomat-x86_64-unknown-linux-gnu.tar.gz
-	sha256sums_x86_64 = 807f6447390cb66e06ca028f3defb80e20fb4da846c828c0f07c9b8b2cd6412d
-	source_aarch64 = https://github.com/jolars/tomat/releases/download/v2.9.0/tomat-aarch64-unknown-linux-gnu.tar.gz
-	sha256sums_aarch64 = b8f28548ababb8bbb33004aaa8e9327035f44e368fbf0e7d8152592dc052a23c
+	source_x86_64 = https://github.com/jolars/tomat/releases/download/v2.10.0/tomat-x86_64-unknown-linux-gnu.tar.gz
+	sha256sums_x86_64 = 151b034d667e5694497764636f1504b06f0b89946aacc7be92f0a112b9c21126
+	source_aarch64 = https://github.com/jolars/tomat/releases/download/v2.10.0/tomat-aarch64-unknown-linux-gnu.tar.gz
+	sha256sums_aarch64 = 60eb639e8db84cfdb53c5fc0fd638cedc6cb4a7eb68d0fea35dfd8977c46aa09
 
 pkgname = tomat-bin

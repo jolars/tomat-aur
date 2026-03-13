@@ -38,11 +38,11 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
           # Download binary tarballs and compute checksums
-          wget -L "https://github.com/jolars/tomat/releases/download/v$VERSION/tomat-x86_64-unknown-linux-gnu.tar.gz"
-          wget -L "https://github.com/jolars/tomat/releases/download/v$VERSION/tomat-aarch64-unknown-linux-gnu.tar.gz"
+          wget -L -O "tomat-$VERSION-x86_64-unknown-linux-gnu.tar.gz" "https://github.com/jolars/tomat/releases/download/v$VERSION/tomat-x86_64-unknown-linux-gnu.tar.gz"
+          wget -L -O "tomat-$VERSION-aarch64-unknown-linux-gnu.tar.gz" "https://github.com/jolars/tomat/releases/download/v$VERSION/tomat-aarch64-unknown-linux-gnu.tar.gz"
 
-          SHA256_X64=$(sha256sum tomat-x86_64-unknown-linux-gnu.tar.gz | cut -d' ' -f1)
-          SHA256_ARM64=$(sha256sum tomat-aarch64-unknown-linux-gnu.tar.gz | cut -d' ' -f1)
+          SHA256_X64=$(sha256sum "tomat-$VERSION-x86_64-unknown-linux-gnu.tar.gz" | cut -d' ' -f1)
+          SHA256_ARM64=$(sha256sum "tomat-$VERSION-aarch64-unknown-linux-gnu.tar.gz" | cut -d' ' -f1)
 
           echo "sha256_x64=$SHA256_X64" >> $GITHUB_OUTPUT
           echo "sha256_arm64=$SHA256_ARM64" >> $GITHUB_OUTPUT
@@ -87,7 +87,7 @@ jobs:
           # Extract tarballs for testing
           mkdir -p test-build
           cd test-build
-          tar -xzf ../tomat-x86_64-unknown-linux-gnu.tar.gz
+          tar -xzf "../tomat-${{ steps.release.outputs.version }}-x86_64-unknown-linux-gnu.tar.gz"
 
           # Verify expected files exist
           test -f tomat || (echo "Binary not found" && exit 1)

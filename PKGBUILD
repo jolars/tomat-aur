@@ -1,3 +1,4 @@
+# Maintainer: Johan Larsson <johan@jolars.co>
 pkgname=tomat-bin
 pkgver=2.11.0
 pkgrel=2

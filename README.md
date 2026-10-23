@@ -1,5 +1,8 @@
 # tomat (AUR)
 
+> [!NOTE]
+> This repo is now archived. The AUR package is published directly from https://github.com/jolars/tomat.
+
 AUR package for [tomat](https://github.com/jolars/tomat) - A Pomodoro timer with daemon support for waybar.
 
 ## Installation
